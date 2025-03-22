@@ -6,8 +6,8 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.llms import HuggingFaceHub
 from loaders.load_file import load_file
 
-st.set_page_config(page_title="Oráculo PX - HuggingFace", layout="wide")
-st.title("Oráculo PX - Gerenciamento de Projetos (modelo gratuito via HuggingFace)")
+st.set_page_config(page_title="Oráculo PX - HuggingFace (Falcon)", layout="wide")
+st.title("Oráculo PX - Gerenciamento de Projetos (modelo Falcon-7B-Instruct via HuggingFace)")
 
 huggingface_api_key = st.secrets.get("HUGGINGFACEHUB_API_TOKEN")
 
@@ -29,8 +29,8 @@ if uploaded_file:
     docs = text_splitter.split_documents(documents)
 
     llm = HuggingFaceHub(
-        repo_id="google/flan-t5-large",
-        model_kwargs={"temperature": 0.5, "max_length": 512}
+        repo_id="tiiuae/falcon-7b-instruct",
+        model_kwargs={"temperature": 0.5, "max_new_tokens": 512}
     )
     chain = load_qa_chain(llm, chain_type="stuff")
 
