@@ -1,19 +1,21 @@
 # app.py
 import streamlit as st
+import os
 from langchain.chains.question_answering import load_qa_chain
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.llms import HuggingFaceHub
 from loaders.load_file import load_file
-import os
 
 st.set_page_config(page_title="Oráculo PX - HuggingFace", layout="wide")
-st.title("Oráculo PX - Gerenciamento de Projetos (modelo gratuito)")
+st.title("Oráculo PX - Gerenciamento de Projetos (modelo gratuito via HuggingFace)")
 
 huggingface_api_key = st.secrets.get("HUGGINGFACEHUB_API_TOKEN")
 
 if not huggingface_api_key:
     st.error("Chave da API do HuggingFace não encontrada. Verifique o secrets.toml.")
     st.stop()
+
+os.environ["HUGGINGFACEHUB_API_TOKEN"] = huggingface_api_key
 
 uploaded_file = st.sidebar.file_uploader("Envie um arquivo (PDF, CSV ou TXT)", type=["pdf", "csv", "txt"])
 
@@ -28,8 +30,7 @@ if uploaded_file:
 
     llm = HuggingFaceHub(
         repo_id="google/flan-t5-large",
-        model_kwargs={"temperature": 0.5, "max_length": 512},
-        huggingfacehub_api_token=huggingface_api_key
+        model_kwargs={"temperature": 0.5, "max_length": 512}
     )
     chain = load_qa_chain(llm, chain_type="stuff")
 
