@@ -7,8 +7,8 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.llms import HuggingFaceHub
 from loaders.load_file import load_file
 
-st.set_page_config(page_title="Oráculo PX - HuggingFace (Melhorado)", layout="wide")
-st.title("Oráculo PX - Gerenciamento de Projetos (com respostas mais precisas)")
+st.set_page_config(page_title="Oráculo PX - HuggingFace (Corrigido)", layout="wide")
+st.title("Oráculo PX - Gerenciamento de Projetos (respostas com chain map_reduce corrigida)")
 
 huggingface_api_key = st.secrets.get("HUGGINGFACEHUB_API_TOKEN")
 
@@ -37,10 +37,9 @@ if uploaded_file:
         model_kwargs={"temperature": 0.3, "max_new_tokens": 512}
     )
 
-    prompt_template = PromptTemplate(
-        template="""Você é um assistente especializado em gestão de projetos.
-Use o contexto abaixo para responder com base em datas, status e aprovações.
-Se não houver dados suficientes, diga "Não sei".
+    question_prompt = PromptTemplate(
+        template="""Dado o seguinte contexto, responda à pergunta com foco em datas, status e aprovações.
+Se não houver informação suficiente, diga "Não sei".
 
 Contexto:
 {context}
@@ -51,7 +50,25 @@ Resposta:
         input_variables=["context", "question"]
     )
 
-    chain = load_qa_chain(llm, chain_type="map_reduce", prompt=prompt_template)
+    combine_prompt = PromptTemplate(
+        template="""Use as respostas parciais abaixo para gerar uma resposta final clara e concisa.
+Se não houver dados suficientes, diga "Não sei".
+
+Respostas parciais:
+{context}
+
+Pergunta: {question}
+Resposta:
+""",
+        input_variables=["context", "question"]
+    )
+
+    chain = load_qa_chain(
+        llm,
+        chain_type="map_reduce",
+        question_prompt=question_prompt,
+        combine_prompt=combine_prompt
+    )
 
     query = st.text_input("Faça sua pergunta sobre o arquivo carregado:")
 
